@@ -1,0 +1,36 @@
+{% set tExt  = states('sensor.mougins_temperature')|float(0) %}
+{% set dExt = states('sensor.derivee_mougins_temp')|float(0) %}
+{% set tInt = states('sensor.salon_temperature')|float(0) %}
+{% set dInt = states('sensor.derivee_salon_temp')|float(0) %}
+
+{# --- Seuils de décision --- #}
+{% set seuilTempExt = 27.5 %}
+{% set seuilTempIntBase = 26 %}
+{% set seuilTempEcart = 1 %}
+{% set seuilDerive = 0.1 %}
+
+{# --- Calcul d'écart de température --- #}
+{% set ecartTemp = tExt - tInt %}
+
+{# --- Conditions de fermeture --- #}
+{% set fermer = 
+  (tExt >= seuilTempExt) and (
+    dExt > seuilDerive or
+    (dInt > seuilDerive and tInt > seuilTempIntBase) or
+    ecartTemp > seuilTempEcart
+  )
+%}
+
+{# --- Conditions d’ouverture --- #}
+{% set ouvrir = tExt < seuilTempExt %}
+
+{# --- Résultat final --- #}
+{{ ouvrir and not fermer }}
+
+Temp ext : {{ tExt }}
+Temp int : {{ tInt }}
+Der ext : {{ dExt }}
+Der int : {{ tInt }}
+Ouvrir : {{ ouvrir }}
+Fermer : {{ fermer }}
+Ouverture : {{ ouvrir and not fermer }}
