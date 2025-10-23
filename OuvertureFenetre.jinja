@@ -3,34 +3,52 @@
 {% set tInt = states('sensor.salon_temperature')|float(0) %}
 {% set dInt = states('sensor.derivee_salon_temp')|float(0) %}
 
-{# --- Seuils de décision --- #}
-{% set seuilTempExt = 27.5 %}
-{% set seuilTempIntBase = 26 %}
-{% set seuilTempEcart = 1 %}
+{# --- Détection saison (simple) --- #}
+{% set saison = 'ete' if tInt > 23 else 'hiver' %}
+
+{# --- Seuils communs --- #}
 {% set seuilDerive = 0.1 %}
+{% set seuilTempEcart = 1 %}
+
+{# --- Seuils spécifiques par saison --- #}
+{% if saison == 'ete' %}
+  {% set seuilTempExt = 27.5 %}
+  {% set seuilTempIntBase = 26 %}
+{% else %}
+  {% set seuilTempExt = 8 %}
+  {% set seuilTempIntBase = 18 %}
+{% endif %}
 
 {# --- Calcul d'écart de température --- #}
 {% set ecartTemp = tExt - tInt %}
 
 {# --- Conditions de fermeture --- #}
-{% set fermer = 
-  (tExt >= seuilTempExt) and (
-    dExt > seuilDerive or
-    (dInt > seuilDerive and tInt > seuilTempIntBase) or
-    ecartTemp > seuilTempEcart
-  )
-%}
+{% if saison == 'ete' %}
+  {% set fermer = 
+    (tExt >= seuilTempExt) and (
+      dExt > seuilDerive or
+      (dInt > seuilDerive and tInt > seuilTempIntBase) or
+      ecartTemp > seuilTempEcart
+    )
+  %}
+{% else %}
+  {# hiver : ouvrir si l’air extérieur peut réchauffer ou si la pièce se refroidit trop lentement #}
+  {% set fermer = (
+      (tExt < seuilTempExt)
+      or (dExt < -seuilDerive and tExt < tInt)
+      or (dInt < -seuilDerive and tInt < seuilTempIntBase)
+    )
+  %}
+  
+{% endif %}
+
 
 {# --- Conditions d’ouverture --- #}
-{% set ouvrir = tExt < seuilTempExt %}
+{% if saison == 'ete' %}
+  {% set ouvrir = tExt < seuilTempExt %}
+{% else %}
+  {% set ouvrir = (tExt > seuilTempExt + 1) and (tExt > tInt + seuilTempEcart) %}
+{% endif %}
 
 {# --- Résultat final --- #}
 {{ ouvrir and not fermer }}
-
-Temp ext : {{ tExt }}
-Temp int : {{ tInt }}
-Der ext : {{ dExt }}
-Der int : {{ tInt }}
-Ouvrir : {{ ouvrir }}
-Fermer : {{ fermer }}
-Ouverture : {{ ouvrir and not fermer }}
