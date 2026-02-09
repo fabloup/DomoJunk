@@ -1,11 +1,18 @@
 blueprint:
   name: Chauffage intelligent par pièce
   description: >
-    Gestion intelligente du chauffage basée sur la présence, la lumière et l'ouverture,
-    avec choix entre pilotage par preset ou par température.
+    Gestion intelligente du chauffage par pièce basée sur la présence,
+    la lumière et l'ouverture, avec choix entre pilotage par preset ou température.
   domain: automation
 
   input:
+    room_name:
+      name: Nom de la pièce
+      description: Nom purement informatif (ex: Bureau, Salon, Chambre)
+      default: Pièce
+      selector:
+        text:
+
     presence:
       name: Capteur de présence
       selector:
@@ -30,6 +37,26 @@ blueprint:
         entity:
           domain: climate
 
+    # ───── Délais ─────
+    delay_presence_absent:
+      name: Délai absence prolongée
+      default: "24:00:00"
+      selector:
+        duration:
+
+    delay_light_off:
+      name: Délai lumière éteinte
+      default: "01:30:00"
+      selector:
+        duration:
+
+    delay_window_open:
+      name: Délai fenêtre ouverte
+      default: "00:10:00"
+      selector:
+        duration:
+
+    # ───── Mode de contrôle ─────
     control_mode:
       name: Mode de contrôle du chauffage
       default: temperature
@@ -39,6 +66,7 @@ blueprint:
             - temperature
             - preset
 
+    # ───── Températures ─────
     temp_comfort:
       name: Température confort
       default: 22
@@ -69,6 +97,7 @@ blueprint:
           step: 0.5
           unit_of_measurement: "°C"
 
+    # ───── Presets ─────
     preset_comfort:
       name: Preset confort
       default: comfort
@@ -98,7 +127,7 @@ trigger:
   - platform: state
     entity_id: !input presence
     to: "off"
-    for: "24:00:00"
+    for: !input delay_presence_absent
     id: presence_off_long
 
   - platform: state
@@ -109,13 +138,13 @@ trigger:
   - platform: state
     entity_id: !input light
     to: "off"
-    for: "01:30:00"
+    for: !input delay_light_off
     id: light_off_long
 
   - platform: state
     entity_id: !input window
     to: "on"
-    for: "00:10:00"
+    for: !input delay_window_open
     id: window_open_long
 
   - platform: state
@@ -126,7 +155,7 @@ trigger:
 action:
   - choose:
 
-      # CONFORT
+      # ───── CONFORT ─────
       - conditions:
           - condition: trigger
             id:
@@ -156,7 +185,7 @@ action:
                     data:
                       preset_mode: !input preset_comfort
 
-      # ECO
+      # ───── ECO ─────
       - conditions:
           - condition: trigger
             id: window_open_long
@@ -182,7 +211,7 @@ action:
                     data:
                       preset_mode: !input preset_eco
 
-      # ABSENT
+      # ───── ABSENT ─────
       - conditions:
           - condition: trigger
             id:
