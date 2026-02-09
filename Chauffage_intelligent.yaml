@@ -1,0 +1,123 @@
+blueprint:
+  name: Chauffage intelligent par pièce
+  description: >
+    Gestion intelligente du chauffage basée sur la présence, la lumière et l'ouverture,
+    avec choix entre pilotage par preset ou par température.
+  domain: automation
+
+  input:
+    presence:
+      name: Capteur de présence
+      selector:
+        entity:
+          domain: binary_sensor
+
+    light:
+      name: Lumière de la pièce
+      selector:
+        entity:
+          domain: light
+
+    window:
+      name: Capteur d'ouverture
+      selector:
+        entity:
+          domain: binary_sensor
+
+    climate:
+      name: Chauffage (climate)
+      selector:
+        entity:
+          domain: climate
+
+    control_mode:
+      name: Mode de contrôle du chauffage
+      default: temperature
+      selector:
+        select:
+          options:
+            - temperature
+            - preset
+
+    temp_comfort:
+      name: Température confort
+      default: 22
+      selector:
+        number:
+          min: 10
+          max: 30
+          step: 0.5
+          unit_of_measurement: "°C"
+
+    temp_eco:
+      name: Température éco
+      default: 18
+      selector:
+        number:
+          min: 10
+          max: 30
+          step: 0.5
+          unit_of_measurement: "°C"
+
+    temp_away:
+      name: Température absence
+      default: 20
+      selector:
+        number:
+          min: 10
+          max: 30
+          step: 0.5
+          unit_of_measurement: "°C"
+
+    preset_comfort:
+      name: Preset confort
+      default: comfort
+      selector:
+        text:
+
+    preset_eco:
+      name: Preset éco
+      default: eco
+      selector:
+        text:
+
+    preset_away:
+      name: Preset absence
+      default: away
+      selector:
+        text:
+
+mode: restart
+
+trigger:
+  - platform: state
+    entity_id: !input presence
+    to: "on"
+    id: presence_on
+
+  - platform: state
+    entity_id: !input presence
+    to: "off"
+    for: "24:00:00"
+    id: presence_off_long
+
+  - platform: state
+    entity_id: !input light
+    to: "on"
+    id: light_on
+
+  - platform: state
+    entity_id: !input light
+    to: "off"
+    for: "01:30:00"
+    id: light_off_long
+
+  - platform: state
+    entity_id: !input window
+    to: "on"
+    for: "00:10:00"
+    id: window_open_long
+
+  - platform: state
+    entity_id: !input window
+    to: "off"
