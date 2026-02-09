@@ -121,3 +121,91 @@ trigger:
   - platform: state
     entity_id: !input window
     to: "off"
+    id: window_closed
+
+action:
+  - choose:
+
+      # CONFORT
+      - conditions:
+          - condition: trigger
+            id:
+              - presence_on
+              - light_on
+              - window_closed
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ control_mode == 'temperature' }}"
+                sequence:
+                  - service: climate.set_temperature
+                    target:
+                      entity_id: !input climate
+                    data:
+                      temperature: !input temp_comfort
+                      hvac_mode: heat
+
+              - conditions:
+                  - condition: template
+                    value_template: "{{ control_mode == 'preset' }}"
+                sequence:
+                  - service: climate.set_preset_mode
+                    target:
+                      entity_id: !input climate
+                    data:
+                      preset_mode: !input preset_comfort
+
+      # ECO
+      - conditions:
+          - condition: trigger
+            id: window_open_long
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ control_mode == 'temperature' }}"
+                sequence:
+                  - service: climate.set_temperature
+                    target:
+                      entity_id: !input climate
+                    data:
+                      temperature: !input temp_eco
+
+              - conditions:
+                  - condition: template
+                    value_template: "{{ control_mode == 'preset' }}"
+                sequence:
+                  - service: climate.set_preset_mode
+                    target:
+                      entity_id: !input climate
+                    data:
+                      preset_mode: !input preset_eco
+
+      # ABSENT
+      - conditions:
+          - condition: trigger
+            id:
+              - presence_off_long
+              - light_off_long
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ control_mode == 'temperature' }}"
+                sequence:
+                  - service: climate.set_temperature
+                    target:
+                      entity_id: !input climate
+                    data:
+                      temperature: !input temp_away
+
+              - conditions:
+                  - condition: template
+                    value_template: "{{ control_mode == 'preset' }}"
+                sequence:
+                  - service: climate.set_preset_mode
+                    target:
+                      entity_id: !input climate
+                    data:
+                      preset_mode: !input preset_away
