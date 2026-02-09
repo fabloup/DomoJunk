@@ -8,7 +8,7 @@ blueprint:
   input:
     room_name:
       name: Nom de la pièce
-      description: Nom purement informatif (ex: Bureau, Salon, Chambre)
+      description: Nom purement informatif (Bureau, Salon, Chambre)
       default: Pièce
       selector:
         text:
