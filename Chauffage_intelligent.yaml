@@ -3,7 +3,6 @@ blueprint:
   description: >
     Gestion intelligente du chauffage basée sur présence,
     lumières et ouvertures multiples.
-    Support mode température ou preset.
   domain: automation
 
   input:
@@ -58,16 +57,6 @@ blueprint:
       selector:
         duration:
 
-    # ───── Mode de contrôle ─────
-    control_mode:
-      name: Mode de contrôle
-      default: temperature
-      selector:
-        select:
-          options:
-            - temperature
-            - preset
-
     # ───── Températures ─────
     temp_comfort:
       name: Température confort
@@ -98,25 +87,6 @@ blueprint:
           max: 30
           step: 0.5
           unit_of_measurement: "°C"
-
-    # ───── Presets ─────
-    preset_comfort:
-      name: Preset confort
-      default: comfort
-      selector:
-        text:
-
-    preset_eco:
-      name: Preset éco
-      default: eco
-      selector:
-        text:
-
-    preset_away:
-      name: Preset absence
-      default: away
-      selector:
-        text:
 
 mode: restart
 
@@ -172,53 +142,24 @@ action:
               - light_on
               - window_closed
         sequence:
-          - choose:
-              - conditions:
-                  - condition: template
-                    value_template: "{{ control_mode == 'temperature' }}"
-                sequence:
-                  - service: climate.set_temperature
-                    target:
-                      entity_id: !input climate
-                    data:
-                      temperature: !input temp_comfort
-                      hvac_mode: heat
-
-              - conditions:
-                  - condition: template
-                    value_template: "{{ control_mode == 'preset' }}"
-                sequence:
-                  - service: climate.set_preset_mode
-                    target:
-                      entity_id: !input climate
-                    data:
-                      preset_mode: !input preset_comfort
+          - service: climate.set_temperature
+            target:
+              entity_id: !input climate
+            data:
+              temperature: !input temp_comfort
+              hvac_mode: heat
 
       # ───── ECO ─────
       - conditions:
           - condition: trigger
             id: window_open_long
         sequence:
-          - choose:
-              - conditions:
-                  - condition: template
-                    value_template: "{{ control_mode == 'temperature' }}"
-                sequence:
-                  - service: climate.set_temperature
-                    target:
-                      entity_id: !input climate
-                    data:
-                      temperature: !input temp_eco
+          - service: climate.set_temperature
+            target:
+              entity_id: !input climate
+            data:
+              temperature: !input temp_eco
 
-              - conditions:
-                  - condition: template
-                    value_template: "{{ control_mode == 'preset' }}"
-                sequence:
-                  - service: climate.set_preset_mode
-                    target:
-                      entity_id: !input climate
-                    data:
-                      preset_mode: !input preset_eco
 
       # ───── ABSENT ─────
       - conditions:
@@ -227,23 +168,8 @@ action:
               - presence_off_long
               - light_off_long
         sequence:
-          - choose:
-              - conditions:
-                  - condition: template
-                    value_template: "{{ control_mode == 'temperature' }}"
-                sequence:
-                  - service: climate.set_temperature
-                    target:
-                      entity_id: !input climate
-                    data:
-                      temperature: !input temp_away
-
-              - conditions:
-                  - condition: template
-                    value_template: "{{ control_mode == 'preset' }}"
-                sequence:
-                  - service: climate.set_preset_mode
-                    target:
-                      entity_id: !input climate
-                    data:
-                      preset_mode: !input preset_away
+          - service: climate.set_temperature
+            target:
+              entity_id: !input climate
+            data:
+              temperature: !input temp_away
