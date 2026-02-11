@@ -1,8 +1,7 @@
 blueprint:
-  name: Chauffage intelligent par pièce (multi-entités)
+  name: Chauffage intelligent par pièce
   description: >
-    Gestion intelligente du chauffage basée sur présence,
-    lumières et ouvertures multiples.
+    Gestion intelligente du chauffage basée sur présence, lumières et ouvertures multiples.
   domain: automation
 
   input:
@@ -29,14 +28,14 @@ blueprint:
           multiple: true
 
     windows:
-      name: Capteurs d'ouverture
+      name: Capteurs d'ouverture de fenêtre
       selector:
         entity:
           domain: binary_sensor
           multiple: true
 
     climate:
-      name: Chauffage (climate)
+      name: Chauffage
       selector:
         entity:
           domain: climate
@@ -50,7 +49,7 @@ blueprint:
         duration:
 
     delay_light_off:
-      name: Délai lumière éteinte
+      name: Délai absence courte
       default: "01:30:00"
       selector:
         duration:
@@ -69,7 +68,7 @@ blueprint:
         number:
           min: 10
           max: 30
-          step: 0.5
+          step: 1
           unit_of_measurement: "°C"
 
     temp_eco:
@@ -79,7 +78,7 @@ blueprint:
         number:
           min: 10
           max: 30
-          step: 0.5
+          step: 1
           unit_of_measurement: "°C"
 
     temp_away:
@@ -89,7 +88,7 @@ blueprint:
         number:
           min: 10
           max: 30
-          step: 0.5
+          step: 1
           unit_of_measurement: "°C"
 
 mode: restart
