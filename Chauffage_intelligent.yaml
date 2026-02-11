@@ -1,14 +1,14 @@
 blueprint:
-  name: Chauffage intelligent par pièce
+  name: Chauffage intelligent par pièce (multi-entités)
   description: >
-    Gestion intelligente du chauffage par pièce basée sur la présence,
-    la lumière et l'ouverture, avec choix entre pilotage par preset ou température.
+    Gestion intelligente du chauffage basée sur présence,
+    lumières et ouvertures multiples.
+    Support mode température ou preset.
   domain: automation
 
   input:
     room_name:
       name: Nom de la pièce
-      description: Nom purement informatif (Bureau, Salon, Chambre)
       default: Pièce
       selector:
         text:
@@ -19,17 +19,19 @@ blueprint:
         entity:
           domain: binary_sensor
 
-    light:
-      name: Lumière de la pièce
+    lights:
+      name: Lumières de la pièce
       selector:
         entity:
           domain: light
+          multiple: true
 
-    window:
-      name: Capteur d'ouverture
+    windows:
+      name: Capteurs d'ouverture
       selector:
         entity:
           domain: binary_sensor
+          multiple: true
 
     climate:
       name: Chauffage (climate)
@@ -58,7 +60,7 @@ blueprint:
 
     # ───── Mode de contrôle ─────
     control_mode:
-      name: Mode de contrôle du chauffage
+      name: Mode de contrôle
       default: temperature
       selector:
         select:
@@ -119,36 +121,43 @@ blueprint:
 mode: restart
 
 trigger:
+
+  # Présence ON
   - platform: state
     entity_id: !input presence
     to: "on"
     id: presence_on
 
+  # Présence OFF long
   - platform: state
     entity_id: !input presence
     to: "off"
     for: !input delay_presence_absent
     id: presence_off_long
 
+  # Lumières ON (une quelconque)
   - platform: state
-    entity_id: !input light
+    entity_id: !input lights
     to: "on"
     id: light_on
 
+  # Lumières OFF long (toutes éteintes)
   - platform: state
-    entity_id: !input light
+    entity_id: !input lights
     to: "off"
     for: !input delay_light_off
     id: light_off_long
 
+  # Fenêtre ouverte longtemps (une quelconque)
   - platform: state
-    entity_id: !input window
+    entity_id: !input windows
     to: "on"
     for: !input delay_window_open
     id: window_open_long
 
+  # Fenêtre fermée
   - platform: state
-    entity_id: !input window
+    entity_id: !input windows
     to: "off"
     id: window_closed
 
