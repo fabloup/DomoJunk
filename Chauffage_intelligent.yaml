@@ -13,10 +13,13 @@ blueprint:
         text:
 
     presence:
-      name: Capteur de présence
+      name: Capteur de présence (optionnel)
+      description: Laisser vide si non utilisé
+      default: ""
       selector:
         entity:
           domain: binary_sensor
+          multiple: true
 
     lights:
       name: Lumières de la pièce
@@ -37,6 +40,7 @@ blueprint:
       selector:
         entity:
           domain: climate
+          multiple: true
 
     # ───── Délais ─────
     delay_presence_absent:
