@@ -15,7 +15,7 @@ blueprint:
     presence:
       name: Capteur de présence (optionnel)
       description: Laisser vide si non utilisé
-      default: {}
+      default: []
       selector:
         entity:
           domain: binary_sensor
