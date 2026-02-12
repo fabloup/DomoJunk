@@ -1,0 +1,178 @@
+blueprint:
+  name: Température Chauffage présence par pièce
+  description: >
+    Gestion intelligente du chauffage basée sur présence, lumières et ouvertures multiples.
+  domain: automation
+
+  input:
+    room_name:
+      name: Nom de la pièce
+      default: Pièce
+      selector:
+        text:
+
+    presence:
+      name: Capteur de présence (optionnel)
+      description: Laisser vide si non utilisé
+      default: []
+      selector:
+        entity:
+          domain: binary_sensor
+          multiple: true
+
+    lights:
+      name: Lumières de la pièce
+      selector:
+        entity:
+          domain: light
+          multiple: true
+
+    windows:
+      name: Capteurs d'ouverture de fenêtre
+      selector:
+        entity:
+          domain: binary_sensor
+          multiple: true
+
+    climate:
+      name: Chauffage
+      selector:
+        entity:
+          domain: climate
+          multiple: true
+
+    # ───── Délais ─────
+    delay_presence_absent_long:
+      name: Délai absence prolongée
+      default: "24:00:00"
+      selector:
+        duration:
+
+    delay_presence_absent_short:
+      name: Délai absence courte
+      default: "01:30:00"
+      selector:
+        duration:
+
+    delay_window_open:
+      name: Délai fenêtre ouverte
+      default: "00:10:00"
+      selector:
+        duration:
+
+    # ───── Températures ─────
+    temp_comfort:
+      name: Température confort
+      default: 22
+      selector:
+        number:
+          min: 10
+          max: 30
+          step: 1
+          unit_of_measurement: "°C"
+
+    temp_eco:
+      name: Température éco
+      default: 18
+      selector:
+        number:
+          min: 10
+          max: 30
+          step: 1
+          unit_of_measurement: "°C"
+
+    temp_away:
+      name: Température absence
+      default: 20
+      selector:
+        number:
+          min: 10
+          max: 30
+          step: 1
+          unit_of_measurement: "°C"
+
+mode: restart
+
+trigger:
+  - platform: state
+    entity_id: !input presence
+    to: "on"
+    id: presence_on
+
+  - platform: state
+    entity_id: !input lights
+    to: "off"
+    for: !input delay_presence_absent_short
+    id: light_off
+
+  - platform: state
+    entity_id: !input presence
+    to: "off"
+    for: !input delay_presence_absent_short
+    id: presence_off
+
+  - platform: state
+    entity_id: !input presence
+    to: "off"
+    for: !input delay_presence_absent_long
+    id: presence_off_long
+
+  - platform: state
+    entity_id: !input lights
+    to: "on"
+    id: light_on
+
+  - platform: state
+    entity_id: !input windows
+    to: "on"
+    for: !input delay_window_open
+    id: window_open_long
+
+  - platform: state
+    entity_id: !input windows
+    to: "off"
+    id: window_closed
+
+action:
+  - choose:
+
+      # ───── CONFORT ─────
+      - conditions:
+          - condition: trigger
+            id:
+              - presence_on
+              - light_on
+              - window_closed
+        sequence:
+          - service: climate.set_temperature
+            target:
+              entity_id: !input climate
+            data:
+              temperature: !input temp_comfort
+              hvac_mode: heat
+
+      # ───── ABSENT ─────
+      - conditions:
+          - condition: trigger
+            id:
+               - light_off
+               - presence_off
+        sequence:
+          - service: climate.set_temperature
+            target:
+              entity_id: !input climate
+            data:
+              temperature: !input temp_away
+
+      # ───── ECO ─────
+      - conditions:
+          - condition: trigger
+            id:
+              - presence_off_long
+              - window_open_long
+        sequence:
+          - service: climate.set_temperature
+            target:
+              entity_id: !input climate
+            data:
+              temperature: !input temp_eco
