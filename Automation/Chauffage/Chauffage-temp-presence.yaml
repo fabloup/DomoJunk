@@ -1,0 +1,100 @@
+alias: Chauffage intelligent – Bureau - test
+description: ""
+triggers:
+  - entity_id: binary_sensor.test_presence_bureau
+    to: "on"
+    id: presence_on
+    trigger: state
+  - entity_id:
+      - light.test_lumiere_bureau
+      - light.hue_bureau
+    to:
+      - "on"
+    id: light_on
+    trigger: state
+  - entity_id:
+      - light.test_lumiere_bureau
+      - light.hue_bureau
+    to:
+      - "off"
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 10
+    id: light_off
+    trigger: state
+  - entity_id:
+      - binary_sensor.test_presence_bureau
+    to:
+      - "off"
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 10
+    id: presence_off
+    trigger: state
+  - entity_id:
+      - binary_sensor.test_presence_bureau
+    to:
+      - "off"
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 24
+    id: presence_off_long
+    trigger: state
+  - entity_id: binary_sensor.test_ouverture_bureau
+    to: "on"
+    for: "00:10:00"
+    id: window_open_long
+    trigger: state
+  - entity_id: binary_sensor.test_ouverture_bureau
+    to: "off"
+    id: window_closed
+    trigger: state
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id:
+              - presence_on
+              - light_on
+              - window_closed
+        sequence:
+          - action: climate.set_temperature
+            metadata: {}
+            target:
+              entity_id: climate.test_bureau_3
+            data:
+              temperature: 22
+              hvac_mode: heat
+      - conditions:
+          - condition: trigger
+            id:
+              - light_off
+              - presence_off
+        sequence:
+          - action: climate.set_temperature
+            metadata: {}
+            target:
+              entity_id: climate.test_bureau_3
+            data:
+              temperature: 20
+      - conditions:
+          - condition: trigger
+            id:
+              - presence_off_long
+              - window_open_long
+        sequence:
+          - action: climate.set_temperature
+            metadata: {}
+            target:
+              entity_id: climate.test_bureau_3
+            data:
+              temperature: 18
+mode: restart
+variables:
+  presence: binary_sensor.test_presence_bureau
+  light: light.test_lumiere_bureau
+  window: binary_sensor.test_ouverture_bureau
+  climate: climate.test_bureau_3
