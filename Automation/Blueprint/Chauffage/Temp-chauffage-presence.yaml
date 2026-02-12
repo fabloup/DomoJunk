@@ -130,6 +130,12 @@ trigger:
 
   - platform: state
     entity_id: !input lights
+    to: "off"
+    for: !input delay_presence_absent_long
+    id: presence_off_long
+
+  - platform: state
+    entity_id: !input lights
     to: "on"
     id: light_on
 
