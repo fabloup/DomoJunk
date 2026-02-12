@@ -43,15 +43,47 @@ triggers:
       seconds: 24
     id: presence_off_long
     trigger: state
-  - entity_id: binary_sensor.test_ouverture_bureau
-    to: "on"
-    for: "00:10:00"
+  - entity_id:
+      - light.test_lumiere_bureau
+      - light.hue_bureau
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 24
+    id: presence_off_long
+    trigger: state
+    to:
+      - "off"
+  - entity_id:
+      - binary_sensor.test_ouverture_bureau
+    to:
+      - "on"
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 10
     id: window_open_long
     trigger: state
+  - entity_id:
+      - cover.fenetre_test_bureau
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 10
+    id: window_open_long
+    trigger: state
+    to:
+      - open
   - entity_id: binary_sensor.test_ouverture_bureau
     to: "off"
     id: window_closed
     trigger: state
+  - entity_id:
+      - cover.fenetre_test_bureau
+    id: window_closed
+    trigger: state
+    to:
+      - closed
 actions:
   - choose:
       - conditions:
