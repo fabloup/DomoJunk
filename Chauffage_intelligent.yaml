@@ -94,41 +94,40 @@ blueprint:
 mode: restart
 
 trigger:
-
-  # Présence ON
   - platform: state
     entity_id: !input presence
     to: "on"
     id: presence_on
 
-  # Présence OFF long
+  - platform: state
+    entity_id: !input lights
+    to: "off"
+    for: !input delay_presence_absent_short
+    id: light_off
+
   - platform: state
     entity_id: !input presence
     to: "off"
-    for: !input delay_presence_absent
+    for: !input delay_presence_absent_short
+    id: presence_off
+
+  - platform: state
+    entity_id: !input presence
+    to: "off"
+    for: !input delay_presence_absent_long
     id: presence_off_long
 
-  # Lumières ON (une quelconque)
   - platform: state
     entity_id: !input lights
     to: "on"
     id: light_on
 
-  # Lumières OFF long (toutes éteintes)
-  - platform: state
-    entity_id: !input lights
-    to: "off"
-    for: !input delay_light_off
-    id: light_off_long
-
-  # Fenêtre ouverte longtemps (une quelconque)
   - platform: state
     entity_id: !input windows
     to: "on"
     for: !input delay_window_open
     id: window_open_long
 
-  # Fenêtre fermée
   - platform: state
     entity_id: !input windows
     to: "off"
@@ -152,27 +151,28 @@ action:
               temperature: !input temp_comfort
               hvac_mode: heat
 
-      # ───── ECO ─────
-      - conditions:
-          - condition: trigger
-            id: window_open_long
-        sequence:
-          - service: climate.set_temperature
-            target:
-              entity_id: !input climate
-            data:
-              temperature: !input temp_eco
-
-
       # ───── ABSENT ─────
       - conditions:
           - condition: trigger
             id:
-              - presence_off_long
-              - light_off_long
+               - light_off
+               - presence_off
         sequence:
           - service: climate.set_temperature
             target:
               entity_id: !input climate
             data:
               temperature: !input temp_away
+
+      # ───── ECO ─────
+      - conditions:
+          - condition: trigger
+            id:
+              - presence_off_long
+              - window_open_long
+        sequence:
+          - service: climate.set_temperature
+            target:
+              entity_id: !input climate
+            data:
+              temperature: !input temp_eco
